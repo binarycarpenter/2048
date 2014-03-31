@@ -4,6 +4,7 @@ function GameManager(size, InputManager, Actuator, StorageManager, AI) {
   this.storageManager = new StorageManager;
   this.actuator       = new Actuator;
   this.ai             = AI ? new AI(this) : null;
+  this.allowAI        = false;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -28,7 +29,7 @@ GameManager.prototype.keepPlaying = function () {
 };
 
 GameManager.prototype.playAI = function() {
-  if(this.ai) {
+  if(this.ai && this.allowAI) {
     this.ai.playGame();
   }
 }
