@@ -450,7 +450,7 @@ hr {
       .tile.tile-2048 .tile-inner {
         font-size: 15px; } }
   .tile.tile-super .tile-inner {
-    color: #f9f6f2;
+    color: pink;
     background: #3c3a32;
     font-size: 30px; }
     @media screen and (max-width: 520px) {
