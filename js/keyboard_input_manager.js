@@ -69,6 +69,11 @@ KeyboardInputManager.prototype.listen = function () {
     if (!modifiers && event.which === 82) {
       self.restart.call(self, event);
     }
+
+    // U key undoes 1 one
+    if(!modifiers && event.which == 85) {
+      self.undo.call(self, event);
+    }
   });
 
   // Respond to button presses
