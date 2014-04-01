@@ -85,6 +85,9 @@ GameManager.prototype.actuate = function () {
 GameManager.prototype.move = function (direction) {
   if(this.game.move(direction)) {
     this.game.addRandomTile();
+    if(!this.game.movesAvailable()) {
+      this.game.over = true; // Game over!
+    }
     this.actuate();
   }
 };

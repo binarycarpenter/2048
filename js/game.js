@@ -106,10 +106,6 @@ Game.prototype.move = function(direction) {
       }
     });
   });
-
-  if (moved && !this.movesAvailable()) {
-    this.over = true; // Game over!
-  }
   return moved;
 };  
 
