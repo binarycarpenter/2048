@@ -1,0 +1,14 @@
+application: gharris2048
+version: 1
+runtime: php
+api_version: 1
+
+handlers:
+- url: /css
+  static_dir: css
+
+- url: /js
+  static_dir: js
+
+- url: /
+  script: html/2048.html

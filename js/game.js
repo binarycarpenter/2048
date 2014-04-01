@@ -1,9 +1,9 @@
 function Game(grid, score, over, won, keepPlaying) {
   this.grid        = grid;
   this.score       = score;
-  this.over        = over;         
-  this.won         = won; 
-  this.keepPlaying = keepPlaying; 
+  this.over        = over;
+  this.won         = won;
+  this.keepPlaying = keepPlaying;
   this.startTiles  = 2;
   this.size        = this.grid.size;
 }
