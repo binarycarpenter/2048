@@ -211,7 +211,10 @@ Game.prototype.undo = function() {
       }
     }
   }
-  if(hasPreviousData) this.grid.cells = cells;
+  if(hasPreviousData) {
+    this.grid.cells = cells;
+    this.over = false;
+  }
 }
 
 Game.prototype.positionsEqual = function (first, second) {
