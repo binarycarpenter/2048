@@ -83,7 +83,8 @@ GameManager.prototype.actuate = function () {
 
 // Move tiles on the grid in the specified direction
 GameManager.prototype.move = function (direction) {
-  if(this.game.move(direction)) {
+  if(this.game.isLegalMove(direction)) {
+    this.game.move(direction);
     this.game.addRandomTile();
     if(!this.game.movesAvailable()) {
       this.game.over = true; // Game over!

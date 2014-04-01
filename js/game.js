@@ -81,7 +81,7 @@ Game.prototype.move = function(direction) {
         var next      = self.grid.cellContent(positions.next);
 
         // Only one merger per row traversal?
-        if (next && next.value === tile.value && !next.mergedFrom) {
+        if (next && next.value === tile.value) {
           var merged = new Tile(positions.next, tile.value * 2);
           merged.mergedFrom = [tile, next];
 
@@ -107,7 +107,46 @@ Game.prototype.move = function(direction) {
     });
   });
   return moved;
-};  
+};
+
+Game.prototype.isLegalMove = function(direction) {
+  // 0: up, 1: right, 2: down, 3: left
+  var self = this;
+
+  if (this.isGameTerminated()) return false; // Don't do anything if the game's over
+
+  var cell, tile;
+
+  var vector     = this.getVector(direction);
+  var traversals = this.buildTraversals(vector);
+
+  if(!vector || !traversals || !traversals.x || !traversals.y) {
+    console.log("bad vector!");
+  }
+
+  moved = false;
+
+  // Traverse the grid in the right direction and move tiles
+  traversals.x.forEach(function (x) {
+    traversals.y.forEach(function (y) {
+      cell = { x: x, y: y };
+      tile = self.grid.cellContent(cell);
+
+      if (tile) {
+        var positions = self.findFarthestPosition(cell, vector);
+        var next      = self.grid.cellContent(positions.next);
+
+        if (next && next.value === tile.value) {
+          moved = true;
+        }
+        else if(!self.positionsEqual(positions.farthest, tile)){
+          moved = true;
+        }
+      }
+    });
+  });
+  return moved;
+};
 
 // Get the vector representing the chosen direction
 Game.prototype.getVector = function (direction) {
