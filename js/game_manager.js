@@ -5,6 +5,7 @@ function GameManager(size, InputManager, Actuator, StorageManager, AI) {
   this.actuator       = new Actuator;
   this.ai             = AI ? new AI(this) : null;
   this.allowAI        = true;
+  this.AIrunning      = false;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -13,7 +14,7 @@ function GameManager(size, InputManager, Actuator, StorageManager, AI) {
   this.inputManager.on("undo", this.undo.bind(this));
 
   this.setup();
-}
+};
 
 // Restart the game
 GameManager.prototype.restart = function () {
@@ -30,25 +31,40 @@ GameManager.prototype.keepPlaying = function () {
 
 GameManager.prototype.playAI = function() {
   if(this.ai && this.allowAI) {
-    var time = 1000;
-    var timeEl = document.getElementById("time");
-    if(timeEl && parseInt(timeEl.value) > 0) {
-      time = parseInt(timeEl.value);
+    if(this.AIrunning) { // already running, so it was actually the stop button that was clicked
+      this.stopAI();
     }
+    else {
+      var time = 1000;
+      var timeEl = document.getElementById("time");
+      if(timeEl && parseInt(timeEl.value) > 0) {
+        time = parseInt(timeEl.value);
+      }
 
-    var moves = 1;
-    var movesEl = document.getElementById("moves");
-    if(movesEl && parseInt(movesEl.value) > 0) {
-      moves = parseInt(movesEl.value);
+      var moves = 1;
+      var movesEl = document.getElementById("moves");
+      if(movesEl && parseInt(movesEl.value) > 0) {
+        moves = parseInt(movesEl.value);
+      }
+
+      this.AIrunning = true;
+      this.actuator.setRunButton("Stop AI");
+      this.actuate();
+      this.ai.runAI(moves, 0, time);
     }
-    this.ai.runAI(moves, time);
   }
-}
+};
+
+GameManager.prototype.stopAI = function() {
+  this.AIrunning = false;
+  this.actuator.setRunButton("Run AI");
+};
 
 GameManager.prototype.undo = function() {
   this.game.undo();
+  this.setGridScore();
   this.actuate();
-}
+};
 
 // Set up the game
 GameManager.prototype.setup = function () {
@@ -67,6 +83,7 @@ GameManager.prototype.setup = function () {
 
   // Update the actuator
   this.actuate();
+  this.setGridScore();
 };
 
 // Sends the updated grid to the actuator
@@ -101,6 +118,14 @@ GameManager.prototype.move = function (direction) {
       this.game.over = true; // Game over!
     }
     this.actuate();
+    this.setGridScore();
+  }
+};
+
+GameManager.prototype.setGridScore = function() {
+  if(this.ai) {
+    var gridScore = this.ai.calcScore(this.game);
+    this.actuator.setGridScore(gridScore);
   }
 };
 

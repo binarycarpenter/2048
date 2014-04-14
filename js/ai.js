@@ -2,52 +2,54 @@ function AI(gameManager) {
   this.gameManager = gameManager;
 }
 
-AI.prototype.runAI = function(moves, minTime) {
-  var numMoves = 0;
-  while(!this.gameManager.game.over && numMoves < moves) {
+AI.prototype.runAI = function(movesToMake, movesMade, minTime) {
+  if(movesMade < movesToMake && !this.gameManager.game.over && this.gameManager.AIrunning) {
+    movesMade++;
+    this.gameManager.actuator.setMovesLeft(movesToMake - movesMade);
     this.makeMove(minTime);
-    numMoves++;
+    var self = this;
+    setTimeout(function(){ self.runAI(movesToMake, movesMade, minTime); }, 500);
+  }
+  else {
+    this.gameManager.actuator.setMovesLeft(movesToMake);
+    this.gameManager.stopAI();
   }
 };
 
 AI.prototype.makeMove = function(minSearchTime) {
-  this.gameManager.move(this.getBestMove());
+  this.gameManager.move(this.getBestMove(minSearchTime));
 };
 
-AI.prototype.getBestMove = function() {
+AI.prototype.getBestMove = function(minSearchTime) {
   var startTime = new Date().getTime();
-  var depth = 3;
-  var move;
-  while((new Date().getTime() - startTime) < minSearchTime) {
-    move = this.recursiveBestMove(this.gameManager.game, null, depth).direction;
-    depth++;
-  }
-  console.log("Looked " + depth + " moves ahead");
-  return move;
+  finishTime = startTime + minSearchTime;
+  var result = this.recursiveBestMove(this.gameManager.game, null, 0, finishTime);
+  console.log("Looked " + result.depth + " moves ahead and found best score ", result.score);
+  return result.direction;
 };
 
-AI.prototype.recursiveBestMove = function(game, bestScore, depth) {
-  var bestDirection = -1;
-  for(var direction = 1; direction < 4; direction++) {
+AI.prototype.recursiveBestMove = function(game, bestScore, depth, finishTime) {
+  var bestDirection= null;
+  for(var direction = 0; direction < 4; direction++) {
     var newGame = game.clone();
     if(newGame.move(direction)) {
-      if(bestDirection < 0) bestDirection = direction;
       this.addWorstTile(newGame);
       var score = this.calcScore(newGame);
       if(bestScore === null || score > bestScore) {
         bestScore = score;
         bestDirection = direction;
       }
-      if(depth > 0) {
-        var bests = this.recursiveBestMove(newGame, bestScore, depth - 1);
+      /*
+      if(new Date().getTime() < finishTime) {
+        var bests = this.recursiveBestMove(newGame, bestScore, depth + 1);
         if(bests.score > bestScore) {
           bestScore = bests.score;
           bestDirection = direction;
         }
-      }
+      } */
     }
   }
-  return {score:bestScore, direction:bestDirection};
+  return {score:bestScore, direction:bestDirection, depth:depth};
 };
 
 AI.prototype.addWorstTile = function(game) {
@@ -75,25 +77,25 @@ AI.prototype.addWorstTile = function(game) {
 };
 
 AI.prototype.calcScore = function(game) {
+  if(!game) game = this.gameManager.game;
   var cells = this.snakedCells(game.grid);
+  var score = this.orderScore(cells);
+  return score;
+};
+
+AI.prototype.orderScore = function(cells) {
   var score = 0;
-  var lastVal = -1;
-  var foundEmpty = false;
+  var lastVal = false;
   for(var i = 0; i < cells.length; i++) {
     var tile = cells[i];
-    if(tile && !foundEmpty) {
-      if(lastVal > 0) {
-        var factor = lastVal / tile.value;
-        if(factor < 1) score -= 50;
-        else score += (200 / factor);
-      }
-      lastVal = tile.value;
+    if(!tile) return score;
+    if(!lastVal || tile.value <= lastVal)  {
+      score += tile.value;
     }
-    else {
-      if(lastVal < 0 && !foundEmpty) score -= 100;
-      else score += 100;
-      foundEmpty = true;
+    else if(lastVal && tile.value > lastVal) {
+      score -= (tile.value - lastVal);
     }
+    lastVal = tile.value;
   }
   return score;
 };

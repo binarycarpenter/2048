@@ -137,3 +137,15 @@ HTMLActuator.prototype.clearMessage = function () {
   this.messageContainer.classList.remove("game-won");
   this.messageContainer.classList.remove("game-over");
 };
+
+HTMLActuator.prototype.setRunButton = function(text) {
+  document.getElementById("runButton").innerHTML = text;
+};
+
+HTMLActuator.prototype.setGridScore = function(score) {
+  document.getElementById("gridScore").innerHTML = score;
+};
+
+HTMLActuator.prototype.setMovesLeft = function(moves) {
+  document.getElementById("moves").value = moves;
+}

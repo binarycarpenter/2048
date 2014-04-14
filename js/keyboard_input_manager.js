@@ -152,12 +152,12 @@ KeyboardInputManager.prototype.keepPlaying = function (event) {
 KeyboardInputManager.prototype.playAI = function (event) {
   event.preventDefault();
   this.emit("playAI");
-}
+};
 
 KeyboardInputManager.prototype.undo = function (event) {
   event.preventDefault();
   this.emit("undo");
-}
+};
 
 KeyboardInputManager.prototype.bindButtonPress = function (selector, fn) {
   var button = document.querySelector(selector);

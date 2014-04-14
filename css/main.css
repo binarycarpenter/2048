@@ -548,19 +548,19 @@ hr {
   text-align: center;
   float: left; }
 
-label.top-button,  {
+.aiRow label  {
   float:left;
   font-weight:bold;
-  cursor:normal;
+  cursor:default;
 }
 
 .aiRow input {
   float: left;
-  font-size: 22px;
+  font-size: 18px;
   height: 26px;
-  margin-right: 20px;
+  margin-right: 16px;
   padding: 4px;
-  width: 43px;
+  width: 50px;
 }
 
 .aiRow {
