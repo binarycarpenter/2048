@@ -2,21 +2,27 @@ function AI(gameManager) {
   this.gameManager = gameManager;
 }
 
-AI.prototype.playGame = function() {
-  while(!this.gameManager.game.over) {
-    this.gameManager.move(this.getBestMove());
+AI.prototype.runAI = function(moves, minTime) {
+  var numMoves = 0;
+  while(!this.gameManager.game.over && numMoves < moves) {
+    this.makeMove(minTime);
+    numMoves++;
   }
+};
+
+AI.prototype.makeMove = function(minSearchTime) {
+  this.gameManager.move(this.getBestMove());
 };
 
 AI.prototype.getBestMove = function() {
   var startTime = new Date().getTime();
-  var minSearchTime = 500;
   var depth = 3;
   var move;
   while((new Date().getTime() - startTime) < minSearchTime) {
     move = this.recursiveBestMove(this.gameManager.game, null, depth).direction;
     depth++;
   }
+  console.log("Looked " + depth + " moves ahead");
   return move;
 };
 

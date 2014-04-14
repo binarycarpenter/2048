@@ -10,38 +10,6 @@ html, body {
 body {
   margin: 80px 0; }
 
-input {
-  display: inline-block;
-  background: #8f7a66;
-  border-radius: 3px;
-  padding: 0 20px;
-  text-decoration: none;
-  color: #f9f6f2;
-  height: 40px;
-  line-height: 42px;
-  cursor: pointer;
-  font: inherit;
-  border: none;
-  outline: none;
-  box-sizing: border-box;
-  font-weight: bold;
-  margin: 0;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none; }
-  input[type="text"], input[type="email"] {
-    cursor: auto;
-    background: #fcfbf9;
-    font-weight: normal;
-    color: #776e65;
-    padding: 0 15px; }
-    input[type="text"]::-webkit-input-placeholder, input[type="email"]::-webkit-input-placeholder {
-      color: #9d948c; }
-    input[type="text"]::-moz-placeholder, input[type="email"]::-moz-placeholder {
-      color: #9d948c; }
-    input[type="text"]:-ms-input-placeholder, input[type="email"]:-ms-input-placeholder {
-      color: #9d948c; }
-
 .heading:after {
   content: "";
   display: block;
@@ -188,7 +156,7 @@ hr {
   100% {
     margin-top: 20%; } }
 .game-container {
-  margin-top: 26px;
+  margin-top: 6px;
   position: relative;
   padding: 15px;
   cursor: default;
@@ -578,7 +546,28 @@ hr {
   cursor: pointer;
   display: block;
   text-align: center;
-  float: right; }
+  float: left; }
+
+label.top-button,  {
+  float:left;
+  font-weight:bold;
+  cursor:normal;
+}
+
+.aiRow input {
+  float: left;
+  font-size: 22px;
+  height: 26px;
+  margin-right: 20px;
+  padding: 4px;
+  width: 43px;
+}
+
+.aiRow {
+  clear:both;
+  margin-top:8px;
+  display:inline-block;
+}
 
 .game-explanation {
   margin-top: 50px; }

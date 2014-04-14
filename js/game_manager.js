@@ -4,7 +4,7 @@ function GameManager(size, InputManager, Actuator, StorageManager, AI) {
   this.storageManager = new StorageManager;
   this.actuator       = new Actuator;
   this.ai             = AI ? new AI(this) : null;
-  this.allowAI        = false;
+  this.allowAI        = true;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -30,7 +30,18 @@ GameManager.prototype.keepPlaying = function () {
 
 GameManager.prototype.playAI = function() {
   if(this.ai && this.allowAI) {
-    this.ai.playGame();
+    var time = 1000;
+    var timeEl = document.getElementById("time");
+    if(timeEl && parseInt(timeEl.value) > 0) {
+      time = parseInt(timeEl.value);
+    }
+
+    var moves = 1;
+    var movesEl = document.getElementById("moves");
+    if(movesEl && parseInt(movesEl.value) > 0) {
+      moves = parseInt(movesEl.value);
+    }
+    this.ai.runAI(moves, time);
   }
 }
 
