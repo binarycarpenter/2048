@@ -35,7 +35,7 @@ GameManager.prototype.playAI = function() {
       this.stopAI();
     }
     else {
-      var time = 1000;
+      var time = 100;
       var timeEl = document.getElementById("time");
       if(timeEl && parseInt(timeEl.value) > 0) {
         time = parseInt(timeEl.value);
@@ -82,8 +82,8 @@ GameManager.prototype.setup = function () {
   }
 
   // Update the actuator
-  this.actuate();
   this.setGridScore();
+  this.actuate();
 };
 
 // Sends the updated grid to the actuator
@@ -113,7 +113,7 @@ GameManager.prototype.actuate = function () {
 GameManager.prototype.move = function (direction) {
   if(this.game.isLegalMove(direction)) {
     this.game.move(direction);
-    this.game.addRandomTile();
+    this.game.computerMove();
     if(!this.game.movesAvailable()) {
       this.game.over = true; // Game over!
     }

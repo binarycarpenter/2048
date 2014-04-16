@@ -8,7 +8,7 @@ AI.prototype.runAI = function(movesToMake, movesMade, minTime) {
     this.gameManager.actuator.setMovesLeft(movesToMake - movesMade);
     this.makeMove(minTime);
     var self = this;
-    setTimeout(function(){ self.runAI(movesToMake, movesMade, minTime); }, 500);
+    setTimeout(function(){ self.runAI(movesToMake, movesMade, minTime); }, 300);
   }
   else {
     this.gameManager.actuator.setMovesLeft(movesToMake);
@@ -23,63 +23,98 @@ AI.prototype.makeMove = function(minSearchTime) {
 AI.prototype.getBestMove = function(minSearchTime) {
   var startTime = new Date().getTime();
   finishTime = startTime + minSearchTime;
-  var result = this.recursiveBestMove(this.gameManager.game, null, 0, finishTime);
+  var result = this.recursiveBestMove(this.gameManager.game, 0, -1000000, 1000000, finishTime);
   console.log("Looked " + result.depth + " moves ahead and found best score ", result.score);
-  return result.direction;
+  return result.move;
 };
 
-AI.prototype.recursiveBestMove = function(game, bestScore, depth, finishTime) {
-  var bestDirection= null;
-  for(var direction = 0; direction < 4; direction++) {
-    var newGame = game.clone();
-    if(newGame.move(direction)) {
-      this.addWorstTile(newGame);
-      var score = this.calcScore(newGame);
-      if(bestScore === null || score > bestScore) {
-        bestScore = score;
-        bestDirection = direction;
-      }
-      /*
-      if(new Date().getTime() < finishTime) {
-        var bests = this.recursiveBestMove(newGame, bestScore, depth + 1);
-        if(bests.score > bestScore) {
-          bestScore = bests.score;
-          bestDirection = direction;
+AI.prototype.recursiveBestMove = function(game, depth, alpha, beta, finishTime) {
+  var bestScore;
+  var bestMove = -1;
+  var result;
+  var maxDepth = depth;
+  // the maxing player
+  if(game.playerTurn) {
+    bestScore = alpha;
+    for(var direction = 0; direction < 4; direction++) {
+      var newGame = game.clone();
+      if(newGame.move(direction)) {
+        if(new Date().getTime() < finishTime) {
+          result = this.recursiveBestMove(newGame, depth+1, bestScore, beta, finishTime);
+          maxDepth = result.depth;
         }
-      } */
+        else {
+          result = {score:this.calcScore(newGame), direction:direction, depth:maxDepth};
+        }
+
+        if(result.score > bestScore) {
+          bestScore = result.score;
+          bestMove  = direction;
+        }
+        if(bestScore > beta) {
+          return {move:bestMove, score: beta, depth:result.depth};
+        }
+      }
     }
   }
-  return {score:bestScore, direction:bestDirection, depth:depth};
+  else { // computer turn
+    var candidates = this.getAICandidates(game);
+    for(var i = 0; i < candidates.length; i++) {
+      var position = candidates[i].position;
+      var value = candidates[i].value;
+      var newGame = game.clone();
+      var tile = new Tile(position, value);
+      newGame.grid.insertTile(tile);
+      newGame.playerTurn = true;
+      result = this.recursiveBestMove(newGame, depth, alpha, bestScore, finishTime);
+      maxDepth = result.depth;
+
+      if(result.score < bestScore) {
+        bestScore = result.score;
+      }
+      if (bestScore < alpha) {
+        return { move: null, score: alpha, depth: result.depth};
+      }
+    }
+  }
+  return {move:bestMove, score:bestScore, depth:maxDepth};
 };
 
-AI.prototype.addWorstTile = function(game) {
+AI.prototype.getAICandidates = function(game) {
+  var candidates = [];
   var cells = game.grid.availableCells();
-  var worstScore = null;
-  var worstTile = null;
-  for (var value = 2; value <= 4; value *= 2) {
-    for (var i in cells) {
+  var scores = {2:[], 4:[]};
+  for(var value in scores)  {
+    for(var i in cells) {
+      scores[value].push(null);
       var cell = cells[i];
       var tile = new Tile(cell, parseInt(value, 10));
       game.grid.insertTile(tile);
-      var score = this.calcScore(game);
-      if(worstScore === null || score < worstScore) {
-        if(worstTile) {
-          game.grid.removeTile(worstTile);
-        }
-        worstTile = tile;
-        worstScore = score;
-      }
-      else {
-        game.grid.removeTile(tile);
+      scores[value][i] = this.calcScore(game);
+      game.grid.removeTile(tile);
+    }
+  }
+
+  var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
+  for(var value in scores) {
+    for(var i = 0; i < scores[value].length; i++) {
+      if(scores[value][i] === maxScore) {
+        candidates.push({position: cells[i], value: parseInt(value, 10)});
       }
     }
   }
+  return candidates;
 };
 
 AI.prototype.calcScore = function(game) {
   if(!game) game = this.gameManager.game;
   var cells = this.snakedCells(game.grid);
   var score = this.orderScore(cells);
+  var emptyCells = game.grid.availableCells().length;
+  score += (emptyCells * 25);
+  if(emptyCells < 6) score -= 500;
+  if(!game.isLegalMove(1) && !game.isLegalMove(2) && !game.isLegalMove(3)) score -= 100000;
+
   return score;
 };
 
@@ -93,7 +128,7 @@ AI.prototype.orderScore = function(cells) {
       score += tile.value;
     }
     else if(lastVal && tile.value > lastVal) {
-      score -= (tile.value - lastVal);
+      score -= (10 * (tile.value - lastVal));
     }
     lastVal = tile.value;
   }

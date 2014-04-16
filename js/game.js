@@ -6,6 +6,7 @@ function Game(grid, score, over, won, keepPlaying) {
   this.keepPlaying = keepPlaying;
   this.startTiles  = 2;
   this.size        = this.grid.size;
+  this.playerTurn  = true;
 }
 
 // Return true if the game is lost, or has won and the user hasn't kept playing
@@ -32,6 +33,11 @@ Game.prototype.addRandomTile = function () {
 
     this.grid.insertTile(tile);
   }
+};
+
+Game.prototype.computerMove = function() {
+  this.addRandomTile();
+  this.playerTurn = true;
 };
 
 // Save all tile positions and remove merger info
@@ -101,6 +107,7 @@ Game.prototype.move = function(direction) {
         }
 
         if (!self.positionsEqual(cell, tile)) {
+          self.playerTurn = false;
           moved = true; // The tile moved from its original cell!
         }
       }
@@ -261,7 +268,9 @@ Game.prototype.positionsEqual = function (first, second) {
 };
 
 Game.prototype.clone = function() {
-  return new Game(this.grid.clone(), this.score, this.over, this.won, this.keepPlaying);
+  var gameClone = new Game(this.grid.clone(), this.score, this.over, this.won, this.keepPlaying);
+  gameClone.playerTurn = this.playerTurn;
+  return gameClone;
 }
 
 // Represent the current game as an object
