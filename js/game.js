@@ -6,7 +6,6 @@ function Game(grid, score, over, won, keepPlaying) {
   this.keepPlaying = keepPlaying;
   this.startTiles  = 2;
   this.size        = this.grid.size;
-  this.playerTurn  = true;
 }
 
 // Return true if the game is lost, or has won and the user hasn't kept playing
@@ -37,7 +36,6 @@ Game.prototype.addRandomTile = function () {
 
 Game.prototype.computerMove = function() {
   this.addRandomTile();
-  this.playerTurn = true;
 };
 
 // Save all tile positions and remove merger info
@@ -100,14 +98,11 @@ Game.prototype.move = function(direction) {
           // Update the score
           self.score += merged.value;
 
-          // The mighty 2048 tile
-          if (merged.value === 2048) self.won = true;
         } else {
           self.moveTile(tile, positions.farthest);
         }
 
         if (!self.positionsEqual(cell, tile)) {
-          self.playerTurn = false;
           moved = true; // The tile moved from its original cell!
         }
       }
@@ -175,6 +170,10 @@ Game.prototype.buildTraversals = function (vector) {
   for (var pos = 0; pos < this.grid.size; pos++) {
     traversals.x.push(pos);
     traversals.y.push(pos);
+  }
+
+  if(!vector || !traversals || !traversals.x || !traversals.y) {
+    console.log("bad vector!");
   }
 
   // Always traverse from the farthest cell in the chosen direction
@@ -269,7 +268,6 @@ Game.prototype.positionsEqual = function (first, second) {
 
 Game.prototype.clone = function() {
   var gameClone = new Game(this.grid.clone(), this.score, this.over, this.won, this.keepPlaying);
-  gameClone.playerTurn = this.playerTurn;
   return gameClone;
 }
 

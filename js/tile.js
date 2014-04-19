@@ -32,3 +32,7 @@ Tile.prototype.serialize = function () {
     value: this.value
   };
 };
+
+Tile.prototype.toString = function() {
+  return this.x + " " + this.y + " " + this.value;
+};

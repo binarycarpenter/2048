@@ -76,7 +76,7 @@ GameManager.prototype.setup = function () {
                          previousState.score, previousState.over, previousState.won,
                          previousState.keepPlaying);
   } else {
-    this.game = new Game(new Grid(this.size), 0, false, false, false);
+    this.game = new Game(new Grid(this.size, false), 0, false, false, true);
     // Add the initial tiles
     this.game.addStartTiles();
   }
