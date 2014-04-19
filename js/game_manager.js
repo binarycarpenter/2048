@@ -41,7 +41,7 @@ GameManager.prototype.playAI = function() {
         time = parseInt(timeEl.value);
       }
 
-      var moves = 1;
+      var moves = false; // run until the game ends
       var movesEl = document.getElementById("moves");
       if(movesEl && parseInt(movesEl.value) > 0) {
         moves = parseInt(movesEl.value);

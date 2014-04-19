@@ -3,15 +3,15 @@ function AI(gameManager) {
 }
 
 AI.prototype.runAI = function(movesToMake, movesMade, minTime) {
-  if(movesMade < movesToMake && !this.gameManager.game.over && this.gameManager.AIrunning) {
+  if((movesToMake === false || movesMade < movesToMake) && !this.gameManager.game.over && this.gameManager.AIrunning) {
     movesMade++;
-    this.gameManager.actuator.setMovesLeft(movesToMake - movesMade);
+    if(movesToMake !== false) this.gameManager.actuator.setMovesLeft(movesToMake - movesMade);
     this.makeMove(minTime);
     var self = this;
     setTimeout(function(){ self.runAI(movesToMake, movesMade, minTime); }, 400);
   }
   else {
-    this.gameManager.actuator.setMovesLeft(movesToMake);
+    if(movesToMake !== false) this.gameManager.actuator.setMovesLeft(movesToMake);
     this.gameManager.stopAI();
   }
 };
