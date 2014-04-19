@@ -56,7 +56,11 @@ AI.prototype.recursiveBestMove = function(game, depth) {
       }
     }
   }
-  if(bestMove === -1) bestMove = 0; // go up if there were no other possibilities
+
+  if(bestMove === -1) {
+    bestMove = 0; // go up if there were no other possibilities
+    bestScore = -1000000;
+  }
   return {move:bestMove, score:bestScore};
 };
 
