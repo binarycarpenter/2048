@@ -23,6 +23,10 @@ AI.prototype.makeMove = function(minSearchTime) {
 };
 
 AI.prototype.getBestMove = function(minSearchTime) {
+  if(this.needToFillBottomRow(this.gameManager.game.grid.cells)) {
+    return 2;
+  }
+
   var startTime = new Date().getTime();
   finishTime = startTime + minSearchTime;
   var depth = 1;
@@ -70,6 +74,11 @@ AI.prototype.recursiveBestMove = function(game, depth, finishTime) {
     bestScore = this.ohFuckThatsBad;
   }
   return {move:bestMove, score:bestScore, outOfTime:outOfTime};
+};
+
+AI.prototype.needToFillBottomRow = function(cells) {
+  return(cells[0][3] && cells[1][3] && cells[2][3] && !cells[3][3] &&
+    (cells[3][0] || cells[3][2] || cells[3[1]]));
 };
 
 AI.prototype.evalMoveAndAddTile = function(game) {
@@ -131,7 +140,7 @@ AI.prototype.orderScore = function(cells, judgingWorstNewTile) {
     }
     else if(lastVal && tile.value > lastVal) {
       var difference = (tile.value - lastVal);
-      score -= (2 * difference);
+      score -= (difference * difference);
     }
     lastVal = tile.value;
   }
