@@ -2,6 +2,8 @@ function AI(gameManager) {
   this.gameManager = gameManager;
 }
 
+AI.prototype.ohFuckThatsBad = -100000;
+
 AI.prototype.runAI = function(movesToMake, movesMade, minTime) {
   if((movesToMake === false || movesMade < movesToMake) && !this.gameManager.game.over && this.gameManager.AIrunning) {
     movesMade++;
@@ -24,29 +26,35 @@ AI.prototype.getBestMove = function(minSearchTime) {
   var startTime = new Date().getTime();
   finishTime = startTime + minSearchTime;
   var depth = 1;
-  var bestMove;
+  var bestMove = -1;
   var bestScore;
   while(new Date().getTime() < finishTime) {
-    var result = this.recursiveBestMove(this.gameManager.game, depth);
-    bestMove = result.move;
-    bestScore = result.score;
+    var result = this.recursiveBestMove(this.gameManager.game, depth, finishTime);
+    if(bestMove === -1 || !result.outOfTime) {
+      bestMove = result.move;
+      bestScore = result.score;
+    }
     depth++;
   }
   console.log("Looked " + depth + " moves ahead and found best score ", bestScore);
   return bestMove;
 };
 
-AI.prototype.recursiveBestMove = function(game, depth) {
+AI.prototype.recursiveBestMove = function(game, depth, finishTime) {
   var bestMove = -1;
   var bestScore = false;
   var result;
-  for(var direction = 1; direction < 4; direction++) {
+  var outOfTime = false;
+  var directions = [2,3,1]
+  for(var i = 0; i < directions.length; i++) {
     var newGame = game.clone();
+    var direction = directions[i];
     if(newGame.move(direction)) {
       var eval = this.evalMoveAndAddTile(newGame);
       var score = eval.score;
-      if(depth > 0) {
-        result = this.recursiveBestMove(eval.game, depth-1);
+      outOfTime = new Date().getTime() > finishTime;
+      if(depth > 0 && !outOfTime) {
+        result = this.recursiveBestMove(eval.game, depth-1, finishTime);
         score += result.score;
       }
 
@@ -59,13 +67,13 @@ AI.prototype.recursiveBestMove = function(game, depth) {
 
   if(bestMove === -1) {
     bestMove = 0; // go up if there were no other possibilities
-    bestScore = -1000000;
+    bestScore = this.ohFuckThatsBad;
   }
-  return {move:bestMove, score:bestScore};
+  return {move:bestMove, score:bestScore, outOfTime:outOfTime};
 };
 
 AI.prototype.evalMoveAndAddTile = function(game) {
-  if(!game.grid.cellsAvailable()) return {game:game, score:-1000000};
+  if(!game.grid.cellsAvailable()) return {game:game, score: this.ohFuckThatsBad};
 
   var numTries = 20;
   var total = 0;
@@ -79,7 +87,7 @@ AI.prototype.evalMoveAndAddTile = function(game) {
 
     var score = map[tile.toString()];
     if(typeof score === "undefined") {
-      score = this.calcScore(game);
+      score = this.calcScore(game, true);
       map[tile.toString()] = score;
     }
     total += score;
@@ -97,32 +105,33 @@ AI.prototype.evalMoveAndAddTile = function(game) {
   return {game:newGame, score:avgScore};
 };
 
-AI.prototype.calcScore = function(game) {
+AI.prototype.calcScore = function(game, judgingWorstNewTile) {
   if(!game) game = this.gameManager.game;
   var cells = this.snakedCells(game.grid);
   var score = this.orderScore(cells);
   var emptyCells = game.grid.availableCells().length;
-  //score += (emptyCells * 5);
-  //if(emptyCells < 6) score -= Math.floor((500 / (emptyCells + 1)));
+  //score += (emptyCells * 25);
+  if(emptyCells < 4) score += Math.floor((this.ohFuckThatsBad / (emptyCells + 1)));
   //if(!game.grid.cells[0][3]) score -= 100000;
 
   return score;
 };
 
-AI.prototype.orderScore = function(cells) {
+AI.prototype.orderScore = function(cells, judgingWorstNewTile) {
   var score = 0;
   var lastVal = false;
   for(var i = 0; i < cells.length; i++) {
     var tile = cells[i];
     if(!tile) {
-      if(i < 4) score -= 100;
+      if(i === 0 && !judgingWorstNewTile) score += this.ohFuckThatsBad;
       return score;
     }
     if(!lastVal || tile.value <= lastVal)  {
-      score += tile.value;
+      score += ((tile.value * tile.value) / 4);
     }
     else if(lastVal && tile.value > lastVal) {
-      score -= (5 * (tile.value - lastVal));
+      var difference = (tile.value - lastVal);
+      score -= (2 * difference);
     }
     lastVal = tile.value;
   }
