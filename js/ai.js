@@ -78,7 +78,7 @@ AI.prototype.recursiveBestMove = function(game, depth, finishTime) {
 
 AI.prototype.needToFillBottomRow = function(cells) {
   return(cells[0][3] && cells[1][3] && cells[2][3] && !cells[3][3] &&
-    (cells[3][0] || cells[3][2] || cells[3[1]]));
+    (cells[3][0] || cells[3][2] || cells[3][1]));
 };
 
 AI.prototype.evalMoveAndAddTile = function(game) {
