@@ -82,7 +82,7 @@ AI.prototype.needToFillBottomRow = function(cells) {
 };
 
 AI.prototype.evalMoveAndAddTile = function(game) {
-  if(!game.grid.cellsAvailable()) return {game:game, score: this.ohFuckThatsBad};
+  if(!game.grid.cellsAvailable()) return {game:game, score:this.ohFuckThatsBad};
 
   var numTries = 20;
   var total = 0;
@@ -96,7 +96,7 @@ AI.prototype.evalMoveAndAddTile = function(game) {
 
     var score = map[tile.toString()];
     if(typeof score === "undefined") {
-      score = this.calcScore(game, true);
+      score = this.calcScore(game);
       map[tile.toString()] = score;
     }
     total += score;
@@ -114,20 +114,7 @@ AI.prototype.evalMoveAndAddTile = function(game) {
   return {game:newGame, score:avgScore};
 };
 
-AI.prototype.calcScore = function(game, judgingWorstNewTile) {
-  if(!game) game = this.gameManager.game;
-  /*var cells = this.snakedCells(game.grid);
-  var score = this.orderScore(cells);
-  var emptyCells = game.grid.availableCells().length;
-  //score += (emptyCells * 25);
-  if(emptyCells < 4) score += Math.floor((this.ohFuckThatsBad / (emptyCells + 1)));
-  //if(!game.grid.cells[0][3]) score -= 100000;
-
-  return score;  */
-  return this.buildingPathScore(game.grid);
-};
-
-AI.prototype.buildingPathScore = function(grid) {
+AI.prototype.calcScore = function(grid) {
   var score = 0;
   var lastVal = false;
 
@@ -160,41 +147,5 @@ AI.prototype.buildingPathScore = function(grid) {
     y--; // and up to the next row
   }
   return score;
-};
-
-AI.prototype.orderScore = function(cells, judgingWorstNewTile) {
-  var score = 0;
-  var lastVal = false;
-  for(var i = 0; i < cells.length; i++) {
-    var tile = cells[i];
-    if(!tile) {
-      if(i === 0 && !judgingWorstNewTile) score += this.ohFuckThatsBad;
-      return score;
-    }
-    if(!lastVal || tile.value <= lastVal)  {
-      score += ((tile.value * tile.value) / 4);
-    }
-    else if(lastVal && tile.value > lastVal) {
-      var difference = (tile.value - lastVal);
-      score -= (difference * difference);
-    }
-    lastVal = tile.value;
-  }
-  return score;
-};
-
-AI.prototype.snakedCells = function(grid) {
-  var snakedCells = [];
-  var leftToRight = true;
-  for(var y = grid.size - 1; y >= 0; y--) {
-    if(leftToRight) {
-      for(var x = 0; x < grid.size; x++) snakedCells.push(grid.cells[x][y]);
-    }
-    else{
-      for(var x = grid.size - 1; x >= 0; x--) snakedCells.push(grid.cells[x][y]);
-    }
-    leftToRight = !leftToRight;
-  }
-  return snakedCells;
 };
 
