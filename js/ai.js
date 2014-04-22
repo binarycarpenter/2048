@@ -116,13 +116,49 @@ AI.prototype.evalMoveAndAddTile = function(game) {
 
 AI.prototype.calcScore = function(game, judgingWorstNewTile) {
   if(!game) game = this.gameManager.game;
-  var cells = this.snakedCells(game.grid);
+  /*var cells = this.snakedCells(game.grid);
   var score = this.orderScore(cells);
   var emptyCells = game.grid.availableCells().length;
   //score += (emptyCells * 25);
   if(emptyCells < 4) score += Math.floor((this.ohFuckThatsBad / (emptyCells + 1)));
   //if(!game.grid.cells[0][3]) score -= 100000;
 
+  return score;  */
+  return this.buildingPathScore(game.grid);
+};
+
+AI.prototype.buildingPathScore = function(grid) {
+  var score = 0;
+  var lastVal = false;
+
+  // start in the bottom left corner and traverse row by row
+  var x = 0;
+  var y = grid.size - 1;
+
+  while(grid.withinBounds({x:x, y:y})) {
+    // calculate score for a row
+    var increment = (x < 2)? 1 : -1; // go the direction that has more space
+    var firstInRow = true;
+    while(grid.withinBounds({x:x, y:y})) {
+      var tile = grid.cells[x][y];
+      if(!tile) return score;
+
+      if(lastVal === false || tile.value <= lastVal) {
+        score += ((tile.value * tile.value) / 4);
+        x += increment;
+        lastVal = tile.value;
+      }
+      else { // tile.value > lastVal, path is blocked, stop with this row
+        if(firstInRow) return score; // path is dead
+        break; // if we've moved laterally in this row already, we can take that move back and try going up instead
+      }
+      firstInRow = false;
+    }
+
+    // x is now just outside of the bounds, or the blockage, move back to the last good path square
+    x -= increment;
+    y--; // and up to the next row
+  }
   return score;
 };
 
