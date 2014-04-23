@@ -4,22 +4,15 @@ function AI(gameManager) {
 
 AI.prototype.ohFuckThatsBad = -100000;
 
-AI.prototype.runAI = function(movesToMake, movesMade, minTime) {
-  if((movesToMake === false || movesMade < movesToMake) && !this.gameManager.game.over && this.gameManager.AIrunning) {
-    movesMade++;
-    if(movesToMake !== false) this.gameManager.actuator.setMovesLeft(movesToMake - movesMade);
-    this.makeMove(minTime);
+AI.prototype.runAI = function(minTime) {
+  if(!this.gameManager.game.over && this.gameManager.AIrunning) {
+    this.gameManager.move(this.getBestMove(minTime));
     var self = this;
-    setTimeout(function(){ self.runAI(movesToMake, movesMade, minTime); }, 400);
+    setTimeout(function(){ self.runAI(movesToMake, movesMade, minTime); }, 100); // allow ui to update
   }
   else {
-    if(movesToMake !== false) this.gameManager.actuator.setMovesLeft(movesToMake);
     this.gameManager.stopAI();
   }
-};
-
-AI.prototype.makeMove = function(minSearchTime) {
-  this.gameManager.move(this.getBestMove(minSearchTime));
 };
 
 AI.prototype.getBestMove = function(minSearchTime) {
@@ -96,7 +89,7 @@ AI.prototype.evalMoveAndAddTile = function(game) {
 
     var score = map[tile.toString()];
     if(typeof score === "undefined") {
-      score = this.calcScore(game);
+      score = this.calcScore(game.grid);
       map[tile.toString()] = score;
     }
     total += score;

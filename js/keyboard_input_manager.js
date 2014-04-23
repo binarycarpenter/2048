@@ -82,6 +82,7 @@ KeyboardInputManager.prototype.listen = function () {
   this.bindButtonPress(".keep-playing-button", this.keepPlaying);
   this.bindButtonPress(".play-ai", this.playAI);
   this.bindButtonPress(".undo", this.undo);
+  this.bindButtonPress(".oneMove", this.oneMove);
 
   // Respond to swipe events
   var touchStartClientX, touchStartClientY;
@@ -157,6 +158,11 @@ KeyboardInputManager.prototype.playAI = function (event) {
 KeyboardInputManager.prototype.undo = function (event) {
   event.preventDefault();
   this.emit("undo");
+};
+
+KeyboardInputManager.prototype.oneMove = function (event) {
+  event.preventDefault();
+  this.emit("oneMove");
 };
 
 KeyboardInputManager.prototype.bindButtonPress = function (selector, fn) {

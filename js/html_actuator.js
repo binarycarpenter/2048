@@ -145,7 +145,3 @@ HTMLActuator.prototype.setRunButton = function(text) {
 HTMLActuator.prototype.setGridScore = function(score) {
   document.getElementById("gridScore").innerHTML = score;
 };
-
-HTMLActuator.prototype.setMovesLeft = function(moves) {
-  document.getElementById("moves").value = moves;
-}
