@@ -85,7 +85,7 @@ Game.prototype.move = function(direction) {
         var next      = self.grid.cellContent(positions.next);
 
         // Only one merger per row traversal?
-        if (next && next.value === tile.value) {
+        if (next && next.value === tile.value && !next.mergedFrom) {
           var merged = new Tile(positions.next, tile.value * 2);
           merged.mergedFrom = [tile, next];
 
@@ -230,37 +230,6 @@ Game.prototype.tileMatchesAvailable = function () {
 
   return false;
 };
-
-Game.prototype.undo = function() {
-  var cells = this.grid.empty();
-  var hasPreviousData = false;
-  for(var x = 0; x < this.size; x++) {
-    for(var y = 0; y < this.size; y++) {
-      var tile = this.grid.cells[x][y];
-      if(tile) {
-        if(tile.mergedFrom) {
-          hasPreviousData = true;
-          this.score -= tile.value;
-          tile0 = tile.mergedFrom[0];
-          tile1 = tile.mergedFrom[1];
-          cells[tile0.previousPosition.x][tile0.previousPosition.y] =
-            new Tile({x:tile0.previousPosition.x, y:tile0.previousPosition.y}, tile0.value);
-          cells[tile1.previousPosition.x][tile1.previousPosition.y] =
-            new Tile({x:tile1.previousPosition.x, y:tile1.previousPosition.y}, tile1.value);
-        }
-        else if(tile.previousPosition) {
-          hasPreviousData = true;
-          cells[tile.previousPosition.x][tile.previousPosition.y] =
-            new Tile({x:tile.previousPosition.x, y:tile.previousPosition.y}, tile.value);
-        }
-      }
-    }
-  }
-  if(hasPreviousData) {
-    this.grid.cells = cells;
-    this.over = false;
-  }
-}
 
 Game.prototype.positionsEqual = function (first, second) {
   return first.x === second.x && first.y === second.y;
