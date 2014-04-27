@@ -143,5 +143,5 @@ HTMLActuator.prototype.setRunButton = function(text) {
 };
 
 HTMLActuator.prototype.setGridScore = function(score) {
-  document.getElementById("gridScore").innerHTML = score;
+  //document.getElementById("gridScore").innerHTML = score;
 };

@@ -134,7 +134,7 @@ GameManager.prototype.move = function (direction) {
 };
 
 GameManager.prototype.setGridScore = function() {
-  if(this.ai) {
+  if(this.ai && false) { // turned off for now
     var gridScore = this.ai.calcScore(this.game.grid);
     this.actuator.setGridScore(gridScore);
   }
