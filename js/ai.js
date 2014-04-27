@@ -46,6 +46,10 @@ AI.prototype.runHeadless = function(minTime) {
 };
 
 AI.prototype.getBestMove = function(minSearchTime) {
+  if(this.goDownToFillRow(this.gameManager.game.grid)) {
+    return 2;
+  }
+
   var startTime = new Date().getTime();
   var finishTime = startTime + minSearchTime;
   var depth = 2;
@@ -61,6 +65,32 @@ AI.prototype.getBestMove = function(minSearchTime) {
     depth++;
   }
   return bestMove;
+};
+
+AI.prototype.goDownToFillRow = function(grid) {
+  var y = grid.size - 1;
+  var x = 0;
+  while(x < grid.size - 1) {
+    if(!grid.cells[x++][y]) return false;
+  }
+  if(!grid.cells[x][y]) {
+    for(y = y - 1; y >= 0; y--) {
+      if(grid.cells[x][y]) return true;
+    }
+  }
+  // bottom row is full, check the next one up
+  else {
+    y--;
+    while(x > 0) {
+      if(!grid.cells[x--][y]) return false;
+    }
+    if(!grid.cells[x][y]) {
+      for(y = y - 1; y >= 0; y--) {
+        if(grid.cells[x][y]) return true;
+      }
+    }
+  }
+  return false;
 };
 
 AI.prototype.recursiveBestMove = function(game, depth, finishTime) {
