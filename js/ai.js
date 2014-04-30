@@ -1,6 +1,12 @@
-function AI(gameManager, config) {
-  this.gameManager = gameManager;
+function AI(game, config) {
+  this.gameManager = {game:game, AIrunning:true};
+  this.running = true;
   this.config = this.defaultConfig;
+  if(config) {
+    for(prop in config) {
+      this.config[prop] = config[prop];
+    }
+  }
 
   this.scoreMap = {};
   var lastVal = 1;
@@ -20,38 +26,67 @@ AI.prototype.defaultConfig = {
   evalWithWorst: true,
   emptyCellInPathPenalty: 0,
   lookAheadInEval: false,
-  forcedMovePenalty: 4
+  forcedMovePenalty: 4,
+  maxTime:100
 };
 
-AI.prototype.runAI = function(minTime) {
-  if(!this.gameManager.game.over && this.gameManager.AIrunning) {
-    this.gameManager.move(this.getBestMove(minTime));
+AI.prototype.runAI = function(maxTime) {
+  if(!this.gameManager.game.over && this.running) {
+    this.gameManager.move(this.getBestMove(maxTime));
     var self = this;
-    setTimeout(function(){ self.runAI(minTime); }, 200); // allow ui to update
+    setTimeout(function(){ self.runAI(); }, 200); // allow ui to update
   }
   else {
     this.gameManager.stopAI();
   }
 };
 
-AI.prototype.runHeadless = function(minTime) {
-  if(!this.gameManager.game.over && this.gameManager.AIrunning) {
-    this.gameManager.game.move(this.getBestMove(minTime));
+AI.prototype.runHeadless = function() {
+  this.numMoves = 0;
+  this.totalDepth = 0;
+  while(!this.gameManager.game.over && this.gameManager.AIrunning) {
+    this.numMoves++;
     this.gameManager.game.computerMove();
+    this.gameManager.game.move(this.getBestMove());
     if(!this.gameManager.game.movesAvailable()) {
       this.gameManager.game.over = true; // Game over!
     }
-    this.runHeadless(minTime);
+    if(this.numMoves % 100 === 0) console.log("grid after " + this.numMoves + " moves:\n" + this.gameManager.game.grid.toString(true));
   }
 };
 
-AI.prototype.getBestMove = function(minSearchTime) {
+AI.prototype.getStats = function() {
+  var statString = this.gameManager.game.score + ",";
+  statString += this.getMaxTile() + ",";
+  statString += this.gameManager.game.grid.toString() + ",";
+  for(var prop in this.defaultConfig) {
+    statString += this.defaultConfig[prop] + ",";
+  }
+  statString += this.numMoves + ",";
+  statString += (this.totalDepth / this.numMoves) + '\n';
+  return statString;
+};
+
+AI.prototype.getMaxTile = function() {
+  var maxTile = 0;
+  var grid = this.gameManager.game.grid;
+  for(var x = 0; x < grid.size; x++) {
+    for(var y = 0; y < grid.size; y++) {
+      if(grid.cells[x][y] && grid.cells[x][y].value > maxTile) maxTile = grid.cells[x][y].value;
+    }
+  }
+  return maxTile;
+};
+
+AI.prototype.getBestMove = function(maxTime) {
+  if(maxTime) this.config.maxTime = maxTime;
+
   if(this.goDownToFillRow(this.gameManager.game.grid)) {
     return 2;
   }
 
   var startTime = new Date().getTime();
-  var finishTime = startTime + minSearchTime;
+  var finishTime = startTime + this.config.maxTime;
   var depth = 2;
   var bestMove = null;
 
@@ -61,9 +96,10 @@ AI.prototype.getBestMove = function(minSearchTime) {
     // if this is the final iteration was cut off prematurely, don't trust the results
     if(bestMove === null || new Date().getTime() < finishTime) {
       bestMove = recursiveBestMove;
+      depth++;
     }
-    depth++;
   }
+  this.totalDepth += (depth - 1);
   return bestMove;
 };
 
@@ -292,148 +328,4 @@ AI.prototype.recursiveCalcScoreHelper = function(grid, position, lastPosition, l
   }
 
   return bestScore;
-};
-
-function Grid(size, previousState) {
-  this.size = size;
-  this.cells = previousState ? this.fromState(previousState) : this.empty();
-}
-
-// Build a grid of the specified size
-Grid.prototype.empty = function () {
-  var cells = [];
-
-  for (var x = 0; x < this.size; x++) {
-    var row = cells[x] = [];
-
-    for (var y = 0; y < this.size; y++) {
-      row.push(null);
-    }
-  }
-
-  return cells;
-};
-
-Grid.prototype.fromState = function (state) {
-  var cells = [];
-
-  for (var x = 0; x < this.size; x++) {
-    var row = cells[x] = [];
-
-    for (var y = 0; y < this.size; y++) {
-      var tile = state[x][y];
-      row.push(tile ? new Tile(tile.position, tile.value) : null);
-    }
-  }
-
-  return cells;
-};
-
-// Find the first available random position
-Grid.prototype.randomAvailableCell = function () {
-  var cells = this.availableCells();
-
-  if (cells.length) {
-    return cells[Math.floor(Math.random() * cells.length)];
-  }
-};
-
-Grid.prototype.availableCells = function () {
-  var cells = [];
-
-  this.eachCell(function (x, y, tile) {
-    if (!tile) {
-      cells.push({ x: x, y: y });
-    }
-  });
-
-  return cells;
-};
-
-// Call callback for every cell
-Grid.prototype.eachCell = function (callback) {
-  for (var x = 0; x < this.size; x++) {
-    for (var y = 0; y < this.size; y++) {
-      callback(x, y, this.cells[x][y]);
-    }
-  }
-};
-
-// Check if there are any cells available
-Grid.prototype.cellsAvailable = function () {
-  return !!this.availableCells().length;
-};
-
-// Check if the specified cell is taken
-Grid.prototype.cellAvailable = function (cell) {
-  return !this.cellOccupied(cell);
-};
-
-Grid.prototype.cellOccupied = function (cell) {
-  return !!this.cellContent(cell);
-};
-
-Grid.prototype.cellContent = function (cell) {
-  if (this.withinBounds(cell)) {
-    return this.cells[cell.x][cell.y];
-  } else {
-    return null;
-  }
-};
-
-// Inserts a tile at its position
-Grid.prototype.insertTile = function (tile) {
-  this.cells[tile.x][tile.y] = tile;
-};
-
-Grid.prototype.removeTile = function (tile) {
-  this.cells[tile.x][tile.y] = null;
-};
-
-Grid.prototype.withinBounds = function (position) {
-  return position.x >= 0 && position.x < this.size &&
-         position.y >= 0 && position.y < this.size;
-};
-
-Grid.prototype.clone = function() {
-  newGrid = new Grid(this.size);
-  for (var x = 0; x < this.size; x++) {
-    for (var y = 0; y < this.size; y++) {
-      if (this.cells[x][y]) {
-        newGrid.insertTile(this.cells[x][y].clone());
-      }
-    }
-  }
-  return newGrid;
-};
-
-Grid.prototype.serialize = function () {
-  var cellState = [];
-
-  for (var x = 0; x < this.size; x++) {
-    var row = cellState[x] = [];
-
-    for (var y = 0; y < this.size; y++) {
-      row.push(this.cells[x][y] ? this.cells[x][y].serialize() : null);
-    }
-  }
-
-  return {
-    size: this.size,
-    cells: cellState
-  };
-};
-
-Grid.prototype.toString = function() {
-  var ret = "";
-  for(var y = 0; y < this.size; y++) {
-    ret += "(";
-    for(var x = 0; x < this.size; x++) {
-      var tile = this.cells[x][y];
-      var val = tile? tile.value.toString() : "";
-      ret += "[" + val + "]";
-    }
-    ret += ")"
-  }
-  return ret;
 };
