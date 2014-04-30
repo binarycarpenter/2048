@@ -1,11 +1,10 @@
 function AI(game, config) {
-  this.gameManager = {game:game, AIrunning:true};
-  this.running = true;
-  this.config = this.defaultConfig;
-  if(config) {
-    for(prop in config) {
-      this.config[prop] = config[prop];
-    }
+  this.game = game;
+  this.config = {};
+  for(prop in this.defaultConfig) {
+    var val = this.defaultConfig[prop];
+    if(config && typeof(config[prop]) !== "undefined") val = config[prop];
+    this.config[prop] = val;
   }
 
   this.scoreMap = {};
@@ -16,7 +15,7 @@ function AI(game, config) {
     this.scoreMap[n] = val;
     lastVal = val;
   }
-}
+};
 
 AI.prototype.reallyBad = -100000;
 
@@ -25,42 +24,29 @@ AI.prototype.defaultConfig = {
   addRecursiveScores: true,
   evalWithWorst: true,
   emptyCellInPathPenalty: 0,
-  lookAheadInEval: false,
-  forcedMovePenalty: 4,
-  maxTime:100
-};
-
-AI.prototype.runAI = function(maxTime) {
-  if(!this.gameManager.game.over && this.running) {
-    this.gameManager.move(this.getBestMove(maxTime));
-    var self = this;
-    setTimeout(function(){ self.runAI(); }, 200); // allow ui to update
-  }
-  else {
-    this.gameManager.stopAI();
-  }
+  maxTime: 100
 };
 
 AI.prototype.runHeadless = function() {
   this.numMoves = 0;
   this.totalDepth = 0;
-  while(!this.gameManager.game.over && this.gameManager.AIrunning) {
+  while(!this.game.over) {
     this.numMoves++;
-    this.gameManager.game.computerMove();
-    this.gameManager.game.move(this.getBestMove());
-    if(!this.gameManager.game.movesAvailable()) {
-      this.gameManager.game.over = true; // Game over!
+    this.game.computerMove();
+    this.game.move(this.getBestMove());
+    if(!this.game.movesAvailable()) {
+      this.game.over = true; // Game over!
     }
-    if(this.numMoves % 100 === 0) console.log("grid after " + this.numMoves + " moves:\n" + this.gameManager.game.grid.toString(true));
+    if(this.numMoves % 100 === 0) console.log("grid after " + this.numMoves + " moves:\n" + this.game.grid.toString(true));
   }
 };
 
 AI.prototype.getStats = function() {
-  var statString = this.gameManager.game.score + ",";
+  var statString = this.game.score + ",";
   statString += this.getMaxTile() + ",";
-  statString += this.gameManager.game.grid.toString() + ",";
-  for(var prop in this.defaultConfig) {
-    statString += this.defaultConfig[prop] + ",";
+  statString += this.game.grid.toString() + ",";
+  for(var prop in this.config) {
+    statString += this.config[prop] + ",";
   }
   statString += this.numMoves + ",";
   statString += (this.totalDepth / this.numMoves) + '\n';
@@ -69,7 +55,7 @@ AI.prototype.getStats = function() {
 
 AI.prototype.getMaxTile = function() {
   var maxTile = 0;
-  var grid = this.gameManager.game.grid;
+  var grid = this.game.grid;
   for(var x = 0; x < grid.size; x++) {
     for(var y = 0; y < grid.size; y++) {
       if(grid.cells[x][y] && grid.cells[x][y].value > maxTile) maxTile = grid.cells[x][y].value;
@@ -81,7 +67,7 @@ AI.prototype.getMaxTile = function() {
 AI.prototype.getBestMove = function(maxTime) {
   if(maxTime) this.config.maxTime = maxTime;
 
-  if(this.goDownToFillRow(this.gameManager.game.grid)) {
+  if(this.goDownToFillRow(this.game.grid)) {
     return 2;
   }
 
@@ -92,7 +78,7 @@ AI.prototype.getBestMove = function(maxTime) {
 
   // iterative deepening, but also cuts off when we hit finish time
   while(new Date().getTime() < finishTime) {
-    var recursiveBestMove = this.recursiveBestMove(this.gameManager.game, depth, finishTime).move;
+    var recursiveBestMove = this.recursiveBestMove(this.game, depth, finishTime).move;
     // if this is the final iteration was cut off prematurely, don't trust the results
     if(bestMove === null || new Date().getTime() < finishTime) {
       bestMove = recursiveBestMove;
@@ -106,44 +92,6 @@ AI.prototype.getBestMove = function(maxTime) {
 AI.prototype.goDownToFillRow = function(grid) {
   return grid.cells[0][3] && grid.cells[1][3] && grid.cells[2][3] && !grid.cells[3][3] &&
          (grid.cells[3][0] || grid.cells[3][1] || grid.cells[3][2]);
-
-    /*
-  if(grid.cells[0][3] && grid.cells[1][3] && grid.cells[2][3]) {
-    if(!grid.cells[3][3]) {
-      return grid.cells[3][0] || grid.cells[3][1] || grid.cells[3][2];
-    }
-    else {
-      return grid.cells[3][2] && grid.cells[3][2].value <= grid.cells[3][3].value &&
-             grid.cells[2][2] && grid.cells[2][2].value <= grid.cells[3][2].value &&
-             grid.cells[1][2] && grid.cells[1][2].value <= grid.cells[2][2].value &&
-             !grid.cells[0][2] && (grid.cells[0][1] || grid.cells[0][0]);
-    }
-  }
-  return false;
-  /*
-  var y = grid.size - 1;
-  var x = 0;
-  while(x < grid.size - 1) {
-    if(!grid.cells[x++][y]) return false;
-  }
-  if(!grid.cells[x][y]) {
-    for(y = y - 1; y >= 0; y--) {
-      if(grid.cells[x][y]) return true;
-    }
-  }
-  // bottom row is full, check the next one up
-  else {
-    y--;
-    while(x > 0) {
-      if(!grid.cells[x--][y]) return false;
-    }
-    if(!grid.cells[x][y]) {
-      for(y = y - 1; y >= 0; y--) {
-        if(grid.cells[x][y]) return true;
-      }
-    }
-  }
-  return false;  */
 };
 
 AI.prototype.recursiveBestMove = function(game, depth, finishTime) {
@@ -209,9 +157,6 @@ AI.prototype.addTileAndEvalMove = function(game) {
 
       // calculate the score of the resulting grid,
       var score = this.calcScore(grid);
-      if(this.config.lookAheadInEval) {
-        score = this.evalLookAhead(game, score);
-      }
       // and weight it based on the probability that this will be the tile randomly added
       var weightedScore = score * (1/availableCells.length) * values[j].probability;
       // accumulate the overall score
@@ -232,24 +177,6 @@ AI.prototype.addTileAndEvalMove = function(game) {
   // this also greatly reduces the search space compared to searching through each possible new tile
   grid.insertTile(worstTile);
   return this.config.evalWithWorst? worstScore : Math.floor(total);
-};
-
-AI.prototype.evalLookAhead = function(game, score) {
-  var legalMoves = [];
-  for(var i = 0; i < 4; i++) {
-    if(game.isLegalMove(i)) {
-      legalMoves.push(i);
-    }
-  }
-
-  if(legalMoves.length === 0) return this.reallyBad;
-  if(legalMoves.length === 1 && legalMoves[0] !== 2) {
-    var newGame = game.clone();
-    newGame.move(legalMoves[0]);
-    var newScore = this.calcScore(newGame.grid);
-    if(newScore < score) return newScore / this.config.forcedMovePenalty;
-  }
-  return score;
 };
 
 /*
@@ -293,39 +220,4 @@ AI.prototype.calcScore = function(grid) {
     y--;
   }
   return score;
-};
-
-AI.prototype.recursiveCalcScore = function(grid) {
-  return this.recursiveCalcScoreHelper(grid, {x:0, y:grid.size - 1}, null, null, 0);
-};
-
-AI.prototype.recursiveCalcScoreHelper = function(grid, position, lastPosition, lastVal, score) {
-  if(!grid.withinBounds(position)) return score;
-
-  var tile = grid.cellContent(position);
-  if(tile && lastVal !== null && tile.value > lastVal) return score; // path blocked
-
-  //var accumScore = score;
-  //var myLastVal = lastVal;
-  if(tile) {
-    lastVal = tile.value;
-    score += this.scoreMap[tile.value];
-  }
-
-  var bestScore = null;
-  var nextPositions = [{x:position.x - 1, y:position.y},
-                       {x:position.x + 1, y:position.y},
-                       {x:position.x, y:position.y - 1}];
-  for(var i = 0; i < nextPositions.length; i++) {
-    var nextPosition = nextPositions[i];
-    if(!grid.withinBounds(nextPosition) ||
-       (lastPosition !== null && nextPosition.x === lastPosition.x && nextPosition.y === lastPosition.y)) {
-      continue;
-    }
-
-    var recursiveScore = this.recursiveCalcScoreHelper(grid, nextPosition, position, lastVal, score);
-    if(bestScore === null || recursiveScore > bestScore) bestScore = recursiveScore;
-  }
-
-  return bestScore;
 };

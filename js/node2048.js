@@ -11,13 +11,17 @@ AI.prototype.defaultConfig = {
   addRecursiveScores: true,
   evalWithWorst: true,
   emptyCellInPathPenalty: 0,
-  lookAheadInEval: false,
-  forcedMovePenalty: 4,
   maxTime: 100
 }; */
 
 var fs = require('fs');
-var properties = [{}, {scoreMapMultiplier:2.1}, {scoreMapMultiplier:2}, {evalWithWorst:false}, {maxTime:300}];
+var properties = [{},
+                  {scoreMapMultiplier:2.1},
+                  {scoreMapMultiplier:2},
+                  {evalWithWorst:false},
+                  {maxTime:300},
+                  {addRecursiveScores:false},
+                  {emptyCellInPathPenalty: 6}];
 var games = 1;
 while(true) {
   for(var i = 0; i < properties.length; i++) {

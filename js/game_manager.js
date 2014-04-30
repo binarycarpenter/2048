@@ -3,11 +3,10 @@ function GameManager(size, InputManager, Actuator, StorageManager, AI) {
   this.inputManager   = new InputManager;
   this.storageManager = new StorageManager;
   this.actuator       = new Actuator;
-  this.ai             = AI ? new AI(this) : null;
   this.allowAI        = true;
   this.AIrunning      = false;
   this.pastStates     = [];
-  this.maxPastStates  = 20;
+  this.maxPastStates  = 50;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -41,8 +40,16 @@ GameManager.prototype.playAI = function() {
       this.AIrunning = true;
       this.actuator.setRunButton("Stop AI");
       this.actuate();
-      this.ai.runAI(this.getAITime());
+      this.makeAIMove(this.getAITime());
     }
+  }
+};
+
+GameManager.prototype.makeAIMove = function(maxTime) {
+  if(!this.game.over && this.AIrunning) {
+    this.move(this.ai.getBestMove(maxTime));
+    var self = this;
+    setTimeout(function(){ self.makeAIMove(maxTime); }, 200); // allow ui to update
   }
 };
 
@@ -90,6 +97,7 @@ GameManager.prototype.setup = function () {
     this.game.addStartTiles();
   }
 
+  this.ai = AI ? new AI(this.game) : null;
   // Update the actuator
   this.setGridScore();
   this.actuate();
