@@ -141,7 +141,3 @@ HTMLActuator.prototype.clearMessage = function () {
 HTMLActuator.prototype.setRunButton = function(text) {
   document.getElementById("runButton").innerHTML = text;
 };
-
-HTMLActuator.prototype.setGridScore = function(score) {
-  //document.getElementById("gridScore").innerHTML = score;
-};

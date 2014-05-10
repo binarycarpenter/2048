@@ -4,6 +4,7 @@ function GameManager(size, InputManager, Actuator, StorageManager, AI) {
   this.storageManager = new StorageManager;
   this.actuator       = new Actuator;
   this.allowAI        = true;
+  this.aiMS           = 100;
   this.AIrunning      = false;
   this.pastStates     = [];
   this.maxPastStates  = 50;
@@ -40,31 +41,23 @@ GameManager.prototype.playAI = function() {
       this.AIrunning = true;
       this.actuator.setRunButton("Stop AI");
       this.actuate();
-      this.makeAIMove(this.getAITime());
+      this.makeAIMove();
     }
   }
 };
 
-GameManager.prototype.makeAIMove = function(maxTime) {
+GameManager.prototype.makeAIMove = function() {
   if(!this.game.over && this.AIrunning) {
-    this.move(this.ai.getBestMove(maxTime));
+    this.move(this.ai.getBestMove(this.aiMS));
     var self = this;
-    setTimeout(function(){ self.makeAIMove(maxTime); }, 200); // allow ui to update
+    setTimeout(function(){ self.makeAIMove(); }, 200); // allow ui to update
   }
+  else this.stopAI();
 };
 
 GameManager.prototype.oneMove = function() {
   if(!this.ai || this.AIrunning || !this.allowAI) return;
-  this.move(this.ai.getBestMove(this.getAITime()));
-};
-
-GameManager.prototype.getAITime = function() {
-  var time = 100;
-  var timeEl = document.getElementById("time");
-  if(timeEl && parseInt(timeEl.value) > 0) {
-    time = parseInt(timeEl.value);
-  }
-  return time;
+  this.move(this.ai.getBestMove(this.aiMS));
 };
 
 GameManager.prototype.stopAI = function() {
@@ -77,7 +70,6 @@ GameManager.prototype.undo = function() {
   if(lastState) {
     this.pastStates = this.pastStates.splice(1, this.maxPastStates);
     this.game = lastState;
-    this.setGridScore();
     this.actuate();
   }
 };
@@ -99,7 +91,6 @@ GameManager.prototype.setup = function () {
 
   this.ai = AI ? new AI(this.game) : null;
   // Update the actuator
-  this.setGridScore();
   this.actuate();
 };
 
@@ -137,14 +128,6 @@ GameManager.prototype.move = function (direction) {
       this.game.over = true; // Game over!
     }
     this.actuate();
-    this.setGridScore();
-  }
-};
-
-GameManager.prototype.setGridScore = function() {
-  if(this.ai && false) { // turned off for now
-    var gridScore = this.ai.calcScore(this.game.grid);
-    this.actuator.setGridScore(gridScore);
   }
 };
 

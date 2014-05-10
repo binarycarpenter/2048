@@ -128,16 +128,24 @@ Grid.prototype.serialize = function () {
   };
 };
 
-Grid.prototype.toString = function() {
+Grid.prototype.toString = function(alignPretty) {
   var ret = "";
   for(var y = 0; y < this.size; y++) {
-    ret += "(";
+    if(!alignPretty) ret += "(";
     for(var x = 0; x < this.size; x++) {
       var tile = this.cells[x][y];
       var val = tile? tile.value.toString() : "";
+      if(alignPretty) {
+        var prefix = true;
+        for(var i = val.length; i < 4; i++) {
+	  val = prefix? (" " + val) : (val + " ");
+          prefix = !prefix;
+        }
+      }
       ret += "[" + val + "]";
     }
-    ret += ")"
+    if(alignPretty) ret += "\n";
+    else ret += ")";
   }
   return ret;
 };

@@ -21,7 +21,7 @@ Tile.prototype.clone = function() {
   //newTile.previousPosition = { x: this.previousPosition.x, y: this.previousPosition.y };
   //newTile.mergedFrom = { x: this.previousPosition.x, y: this.previousPosition.y };
   return newTile;
-}
+};
 
 Tile.prototype.serialize = function () {
   return {
