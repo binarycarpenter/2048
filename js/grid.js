@@ -26,7 +26,12 @@ Grid.prototype.fromState = function (state) {
 
     for (var y = 0; y < this.size; y++) {
       var tile = state[x][y];
-      row.push(tile ? new Tile(tile.position, tile.value) : null);
+      var toInsert = null;
+      if(tile) {
+        if(tile.position) toInsert = new Tile(tile.position, tile.value);
+        else toInsert = new Tile({x:y, y:x}, tile);
+      }
+      row.push(toInsert);
     }
   }
 
@@ -137,7 +142,7 @@ Grid.prototype.toString = function(alignPretty) {
       var val = tile? tile.value.toString() : "";
       if(alignPretty) {
         var prefix = true;
-        for(var i = val.length; i < 4; i++) {
+        for(var i = val.length; i < 5; i++) {
 	  val = prefix? (" " + val) : (val + " ");
           prefix = !prefix;
         }

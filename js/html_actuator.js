@@ -13,6 +13,16 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
   window.requestAnimationFrame(function () {
     self.clearContainer(self.tileContainer);
 
+    var gridCells = document.getElementsByClassName('grid-cell');
+    for(var i=0; i < gridCells.length; i++) {
+      gridCells[i].classList.remove("path");
+    }
+    for(var i=0; i < metadata.pathCells.length; i++) {
+        var pathCell = metadata.pathCells[i];
+        var index = (pathCell.y * grid.size) + pathCell.x;
+        gridCells[index].classList.add("path");
+    }
+
     grid.cells.forEach(function (column) {
       column.forEach(function (cell) {
         if (cell) {
@@ -20,6 +30,8 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
         }
       });
     });
+
+
 
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);

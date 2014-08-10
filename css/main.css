@@ -15,6 +15,10 @@ body {
   display: block;
   clear: both; }
 
+.path {
+  border:2px solid blue;
+}
+
 h1.title {
   font-size: 80px;
   font-weight: bold;

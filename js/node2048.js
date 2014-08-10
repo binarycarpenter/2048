@@ -5,16 +5,9 @@ eval(fs.readFileSync('grid.js') + '');
 eval(fs.readFileSync('game.js') + '');
 eval(fs.readFileSync('tile.js') + '');
 
-/*
-AI.prototype.defaultConfig = {
-    scoreMapMultiplier: 2.5,
-    evalWithWorst: true,
-    maxTime: 100
-}; */
-
 var fs = require('fs');
 
-dataFile = "data.csv";
+dataFile = "dataUp.csv";
 var games = 1;
 var aiTime = 100;
 var updateInterval = process.argv[2];

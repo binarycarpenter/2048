@@ -7,7 +7,8 @@ function GameManager(size, InputManager, Actuator, StorageManager, AI) {
   this.aiMS           = 100;
   this.AIrunning      = false;
   this.pastStates     = [];
-  this.maxPastStates  = 50;
+  this.maxPastStates  = 0;
+  this.loadSaved      = false;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -18,6 +19,13 @@ function GameManager(size, InputManager, Actuator, StorageManager, AI) {
 
   this.setup();
 };
+
+GameManager.prototype.saved = {score: 1811336,
+                               grid: [[2,2,8,16],
+                                      [256,128,64,32],
+                                      [512,1024,2048,4096],
+                                      [65536,32768,16384,8192]]
+                              };
 
 // Restart the game
 GameManager.prototype.restart = function () {
@@ -50,7 +58,7 @@ GameManager.prototype.makeAIMove = function() {
   if(!this.game.over && this.AIrunning) {
     this.move(this.ai.getBestMove(this.aiMS));
     var self = this;
-    setTimeout(function(){ self.makeAIMove(); }, 200); // allow ui to update
+    setTimeout(function(){ self.makeAIMove(); }, 125); // allow ui to update
   }
   else this.stopAI();
 };
@@ -78,12 +86,16 @@ GameManager.prototype.undo = function() {
 GameManager.prototype.setup = function () {
   var previousState = this.storageManager.getGameState();
 
+  if(this.loadSaved) {
+    this.game = new Game(new Grid(this.size, this.saved.grid), this.saved.score, false, false, true);
+  }
   // Reload the game from a previous game if present
-  if (previousState) {
+  else if (previousState) {
     this.game = new Game(new Grid(previousState.grid.size, previousState.grid.cells), // Reload grid
                          previousState.score, previousState.over, previousState.won,
                          previousState.keepPlaying);
-  } else {
+  }
+  else {
     this.game = new Game(new Grid(this.size, false), 0, false, false, true);
     // Add the initial tiles
     this.game.addStartTiles();
@@ -92,6 +104,8 @@ GameManager.prototype.setup = function () {
   this.ai = AI ? new AI(this.game) : null;
   // Update the actuator
   this.actuate();
+
+  this.playAI();
 };
 
 // Sends the updated grid to the actuator
@@ -108,6 +122,7 @@ GameManager.prototype.actuate = function () {
   }
 
   this.actuator.actuate(this.game.grid, {
+    pathCells:  this.ai.getPathCells(this.game.grid),
     score:      this.game.score,
     over:       this.game.over,
     won:        this.game.won,
